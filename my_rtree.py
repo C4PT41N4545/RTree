@@ -308,12 +308,12 @@ class RTree(object): #R tree class
                 q.sort(key=lambda x: x[1]) #sort the queue based on the MBR distance
         return best_dist, best_point
 
-    def fit(self, data_points):
+    def fit(self, data_points, show_progress=True):
         '''Fit the R-tree with a list of data points.
         This method inserts all data points into the R-tree.
         '''
-        print("Fitting R-tree with data points...")
-        for p in tqdm(data_points, desc="Inserting"):
+        iterable = tqdm(data_points, desc="Inserting") if show_progress else data_points
+        for p in iterable:
             self.insert(self.root, p)
         return self
 

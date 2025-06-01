@@ -7,7 +7,7 @@ import time
 import argparse
 from pathlib import Path
 from tqdm import tqdm
-def plot_results(results):
+def plot_results(results, results_dir='Task1_Results'):
     # Plot the results
     max_entries = [result[0] for result in results]
     total_time = [result[1] for result in results]
@@ -23,19 +23,20 @@ def plot_results(results):
     xticks = np.arange(min(max_entries), max(max_entries)+1, 1)
     plt.xticks(xticks)
     #save the plot to a file
-    plt.savefig("Task1_Results/RTree_Performance.png")
+    plt.savefig(results_dir / "RTree_Performance.png")
     plt.show()
 
-def plot_rtree(rtree):
+def plot_rtree(rtree, results_dir, minmax):
     #plot the MBRs
     fig, ax = plt.subplots(figsize=(8,8))
     plot_node(rtree.root, ax)
-    ax.set_xlim(0,100)
-    ax.set_ylim(0,100)
+    ax.set_xlim(minmax[0], minmax[2])
+    ax.set_ylim(minmax[1], minmax[3])
     ax.set_xlabel('X-axis')
     ax.set_ylabel('Y-axis')
     ax.set_title('R-Tree MBR Visualization')
     ax.grid(True)
+    plt.savefig(results_dir / "RTree_Structure.png")
     plt.show()
 
 def plot_node(node, ax, depth=0):
@@ -69,7 +70,7 @@ def find_best_max_entries(data_points, query_points):
         # Create an R-Tree with the current max_entries
         rtree = RTree(max_entries=i)
         # Insert the data points into the R-Tree
-        rtree.fit(data_points)
+        rtree.fit(data_points, show_progress=False)
         # Measure the time taken for nearest neighbor search
         total_start_time = time.time()
         for query_point in query_points:
@@ -85,18 +86,26 @@ def find_best_max_entries(data_points, query_points):
 def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Run nearest neighbor search algorithms.")
-    parser.add_argument('--dataset-dir', type=Path, default=Path('Task1_Datasets/parking_dataset_sample.txt'), help='Directory containing the dataset.')
+    parser.add_argument('--dataset-dir', type=Path, default=Path('Task1_Datasets/parking_dataset.txt'), help='Directory containing the dataset.')
+    parser.add_argument('--query-dir', type=Path, default=Path('Task1_Datasets/query_points.txt'), help='Directory containing the dataset.')
+    parser.add_argument('--results-dir', type=Path, default=Path('Task1_Results'), help='Directory to save the results.')
     args = parser.parse_args()
     dataset_dir = args.dataset_dir
+    query_dir = args.query_dir
+    results_dir = args.results_dir
     # Read data points from file
     data_points = read_point(dataset_dir)
-    
+    query_points = read_point(query_dir)
     # Find the best max_entries for the R-Tree
-    results = find_best_max_entries(data_points, data_points)
-    
+    results = find_best_max_entries(data_points, query_points)
+    #find min and max x an y in data_points
+    min_x = min(p.x for p in data_points)
+    min_y = min(p.y for p in data_points)
+    max_x = max(p.x for p in data_points)
+    max_y = max(p.y for p in data_points)
+    minmax = (min_x, min_y, max_x, max_y)
     # Plot the results
-    plot_results(results)
-    
+    plot_results(results, results_dir)
     # Create an R-Tree with the best max_entries
     best_max_entries = results[-1][0]
     #best_max_entries=10
@@ -104,6 +113,6 @@ def main():
     rtree.fit(data_points)
     
     # Plot the R-Tree structure
-    plot_rtree(rtree)
+    plot_rtree(rtree, results_dir, minmax)
 if __name__ == "__main__":
     main()

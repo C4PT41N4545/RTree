@@ -53,13 +53,12 @@ python task1_main.py --max_entries 10 --dataset-dir Task1_Datasets/parking_datas
 ### 5. Visualization
 
 ```
-python visualisation.py --dataset-dir Task1_Datasets/parking_dataset_sample.txt
+python visualisation.py --dataset-dir Task1_Datasets/parking_dataset_sample.txt --query-dir Task1_Datasets/query_points.txt --results-dir Task1_Results 
 ```
 This will generate performance plots and visualize the R-Tree structure.
 
 ## Notes
 - You can change dataset and query file paths using the `--dataset-dir` and `--query-dir` arguments.
-- Results and plots are saved in the `Task1_Results/` directory.
 - For more details, see the code comments and function docstrings.
 
 ## Contact
