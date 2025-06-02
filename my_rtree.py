@@ -100,18 +100,13 @@ class Node(object):
         self.id = 0
         self.is_leaf = is_leaf #if the node is a leaf node, set is_leaf to True, otherwise set it to False  
         self.max_entries = max_entries #maximum number of data points in a node
-        self.child_nodes = [] #for non-leaf node, a list to store nodes
-        self.data_points = [] #for leaf node, a list to store data points
+        self.entries = [] #a list to store the entries of the node
         self.parent = None
         self.MBR = MBR() #create a MBR for the node
 
     def is_overflow(self):
         #check if the node is overflow
-        #if the number of data points is greater than B, return True
-        if self.is_leaf:
-            return len(self.data_points) > self.max_entries
-        else:
-            return len(self.child_nodes) > self.max_entries
+        return len(self.entries) > self.max_entries
 
     def is_root(self):
         #return True if the node is a root node, return False if the node is not a root node
@@ -119,14 +114,22 @@ class Node(object):
     def update_mbr(self):
         """Update the MBR of this node based on its data points or child nodes."""
         #update the MBR of the node
+        self.MBR = MBR() #create a new MBR
         if self.is_leaf:
-            self.MBR = MBR() #create a new MBR
-            for point in self.data_points:
+            for point in self.entries:
                 self.MBR.expand_to_include(point)
         else:
-            self.MBR = MBR() #create a new MBR
-            for child in self.child_nodes:
+            for child in self.entries:
                 self.MBR.expand_to_include(child.MBR)
+    def add_entry(self, entry):
+        """
+        Append a Point (if leaf) or a Node (if internal) into self.entries,
+        then update MBR (and set parent if entry is a Node).
+        """
+        self.entries.append(entry)
+        if not self.is_leaf:
+            entry.parent = self
+        self.update_mbr()
 class RTree(object): #R tree class
     def __init__(self, max_entries):
         self.max_entries = max_entries #maximum number of data points in a node
@@ -137,7 +140,7 @@ class RTree(object): #R tree class
     # --------------------------------------------------------------------------- #
     def insert(self, node, point): # insert p(data point) to u (MBR)
         if node.is_leaf: 
-            self.add_data_point(node, point) #add the data point and update the corresponding MBR
+            node.add_entry(point) #add the data point and update the corresponding MBR
             if node.is_overflow():
                 self.handle_overflow(node) #handel overflow for leaf nodes
             node.update_mbr() #update the MBR of the node
@@ -146,21 +149,6 @@ class RTree(object): #R tree class
             self.insert(sub_node, point) #keep continue to check the next layer recursively
             node.update_mbr() #update the MBR for inserting the data point
 
-    def add_data_point(self, node, data_point): #add data points and update the the MBRS
-        # 1. add the point into node.data_points
-        node.data_points.append(data_point)
-        # 2. update node.MBR\
-        node.update_mbr() #update the MBR of the node
-        
-
-    def add_child(self, node, child):
-        # 1. add the child into node.child_nodes
-        node.child_nodes.append(child) #add the child into the node
-        # 2. set the node as the parent of the child
-        child.parent = node #set the parent of the child
-        # 3. update node.MBR
-        node.update_mbr() #update the MBR of the node
-
     # return the child whose MBR requires the minimum increase in perimeter to cover p
 
     def handle_overflow(self, node):
@@ -168,8 +156,8 @@ class RTree(object): #R tree class
         # if u is root, create a new root with s1 and s2 as its' children
         if node.is_root():
             new_root = Node(max_entries=node.max_entries, is_leaf=False) #create a new root
-            self.add_child(new_root, node1)
-            self.add_child(new_root, node2)
+            new_root.add_entry(node1)
+            new_root.add_entry(node2)
             self.root = new_root
             new_root.update_mbr() #update the MBR of the new root
         # if u is not root, delete u, and set s1 and s2 as u's parent's new children
@@ -177,9 +165,9 @@ class RTree(object): #R tree class
             parent = node.parent #get the parent of the node
             # copy the information of s1 into u
             #parent.child_nodes.remove(node) #remove the node from the parent
-            parent.child_nodes = [c for c in parent.child_nodes if c is not node]
-            self.add_child(parent, node1) #add the first child to the parent
-            self.add_child(parent, node2) #add the second child to the parent
+            parent.entries = [c for c in parent.entries if c is not node]
+            parent.add_entry(node1) #add the first child to the parent
+            parent.add_entry(node2) #add the second child to the parent
             # update the MBR of the parent
             parent.update_mbr()
             if parent.is_overflow(): #check the parent node recursively
@@ -192,7 +180,7 @@ class RTree(object): #R tree class
         else:
             min_increase = sys.maxsize #set an initial value
             best_child = None
-            for child in node.child_nodes: #check each child to find the best node to insert the point 
+            for child in node.entries: #check each child to find the best node to insert the point 
                 increase = child.MBR.perimeter_increase(point)
                 if increase < min_increase:
                     min_increase = increase
@@ -205,66 +193,55 @@ class RTree(object): #R tree class
         best_s1 = Node(max_entries=u.max_entries)
         best_s2 = Node(max_entries=u.max_entries)
         best_perimeter = sys.maxsize # set an initial value
+        m = len(u.entries) # get the number of data points or child nodes
+        minfill = math.ceil(0.4 * u.max_entries) # set the minimum fill factor to 0.4 of the maximum number of entries
+        maxfill = m - minfill + 1 # set the maximum fill factor to m - minfill + 1
         # u is a leaf node
         if u.is_leaf:
-            m = u.data_points.__len__() # get the number of data points
             # create two different kinds of divides
             # divide the points based on X dimension and Y dimension
             # sort the points based on X dimension and Y dimension
-            divides = [sorted(u.data_points, key=lambda p: p.x),
-                       sorted(u.data_points, key=lambda p: p.y)]#sorting the points based on X dimension and Y dimension
-            for divide in divides:
-                # check the combinations to find a near-optimal one
-                for i in range(math.ceil(0.4 * u.max_entries), m - math.ceil(0.4 * u.max_entries) + 1): #check the combinations to find a near-optimal one
-                    # add the first half of the points to s1
-                    s1 = Node(max_entries=u.max_entries)
-                    s1.data_points = divide[0: i] #add the first half of the points to s1
-                    s1.update_mbr()
-                    s2 = Node(max_entries=u.max_entries)
-                    s2.data_points = divide[i: divide.__len__()] #add the second half of the points to s2
-                    s2.update_mbr()
-                    if best_perimeter > s1.MBR.perimeter() + s2.MBR.perimeter(): #check the perimeter
-                        # if the perimeter of s1 and s2 is smaller than the current minimum perimeter, update the minimum perimeter
-                        best_perimeter = s1.MBR.perimeter() + s2.MBR.perimeter()
-                        # update the best s1 and s2
-                        best_s1 = s1
-                        best_s2 = s2
+            divides = [sorted(u.entries, key=lambda p: p.x),
+                       sorted(u.entries, key=lambda p: p.y)]#sorting the points based on X dimension and Y dimension
 
         # u is a internal node
         else:
             # create four different kinds of divides
             # divide the points based on X1, X2, Y1, Y2
             # sort the points based on X1, X2, Y1, Y2
-            m = u.child_nodes.__len__() #get the number of child nodes
-            divides = [sorted(u.child_nodes, key=lambda child_node: child_node.MBR.x1), #sorting based on MBRs
-                       sorted(u.child_nodes, key=lambda child_node: child_node.MBR.x2),
-                       sorted(u.child_nodes, key=lambda child_node: child_node.MBR.y1),
-                       sorted(u.child_nodes, key=lambda child_node: child_node.MBR.y2)]
-            # check the combinations to find a near-optimal one
-            for divide in divides:
-                for i in range(math.ceil(0.4 * u.max_entries), m - math.ceil(0.4 * u.max_entries) + 1): #check the combinations
-                    # add the first half of the points to s1
+            divides = [sorted(u.entries, key=lambda child_node: child_node.MBR.x1), #sorting based on MBRs
+                       sorted(u.entries, key=lambda child_node: child_node.MBR.x2),
+                       sorted(u.entries, key=lambda child_node: child_node.MBR.y1),
+                       sorted(u.entries, key=lambda child_node: child_node.MBR.y2)]
+        # check the combinations to find a near-optimal one
+        for divide in divides:
+            for i in range(minfill, maxfill): #check the combinations
+                # add the first half of the points to s1
+                if u.is_leaf:
+                    s1 = Node(max_entries=u.max_entries, is_leaf=True)
+                    s2 = Node(max_entries=u.max_entries, is_leaf=True)
+                else:
                     s1 = Node(max_entries=u.max_entries, is_leaf=False)
-                    s1.child_nodes = divide[0: i]
-                    s1.update_mbr()
-                    # add the second half of the points to s2
                     s2 = Node(max_entries=u.max_entries, is_leaf=False)
-                    s2.child_nodes = divide[i: divide.__len__()]
-                    s2.update_mbr()
-                    # check the perimeter
-                    # if the perimeter of s1 and s2 is smaller than the current minimum perimeter, update the minimum perimeter
-                    if best_perimeter > s1.MBR.perimeter() + s2.MBR.perimeter():
-                        # update the best s1 and s2
-                        best_perimeter = s1.MBR.perimeter() + s2.MBR.perimeter()
-                        best_s1 = s1
-                        best_s2 = s2
+                s1.entries = divide[0: i]
+                s1.update_mbr()
+                # add the second half of the points to s2
+                s2.entries = divide[i: len(divide)]
+                s2.update_mbr()
+                # check the perimeter
+                # if the perimeter of s1 and s2 is smaller than the current minimum perimeter, update the minimum perimeter
+                if best_perimeter > s1.MBR.perimeter() + s2.MBR.perimeter():
+                    # update the best s1 and s2
+                    best_perimeter = s1.MBR.perimeter() + s2.MBR.perimeter()
+                    best_s1 = s1
+                    best_s2 = s2
         # set the parent of s1 and s2 to u
         # set the parent of s1 to u
-        for child in best_s1.child_nodes:
+        for child in best_s1.entries:
             # set the parent of s1 to u
             child.parent = best_s1
         # set the parent of s2 to u
-        for child in best_s2.child_nodes:
+        for child in best_s2.entries:
             # set the parent of s2 to u
             child.parent = best_s2
 
@@ -290,7 +267,7 @@ class RTree(object): #R tree class
                 break
             if current_node.is_leaf:
                 # Check all points in the leaf node
-                for data_point in current_node.data_points:
+                for data_point in current_node.entries:
                     #dist = self._point_distance((query_point['x'], query_point['y']), (data_point['x'], data_point['y']))
                     dist = query_point.distance_to(data_point) #calculate the distance between the query point and the data point
                     if dist < best_dist:
@@ -299,7 +276,7 @@ class RTree(object): #R tree class
                         best_point = data_point
             else:
                 # Prepare a list of (min_dist_to_MBR, child_node)
-                for child in current_node.child_nodes:
+                for child in current_node.entries:
                     #mbr = (child.MBR['x1'], child.MBR['y1'], child.MBR['x2'], child.MBR['y2'])
                     #min_dist = self._mbr_min_dist((query_point['x'], query_point['y']), mbr)
                     min_dist = child.MBR.distance_to_point(query_point) #calculate the distance between the query point and the MBR of the child node
