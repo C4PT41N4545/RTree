@@ -193,59 +193,48 @@ class RTree(object): #R tree class
         best_s1 = Node(max_entries=u.max_entries)
         best_s2 = Node(max_entries=u.max_entries)
         best_perimeter = sys.maxsize # set an initial value
+        m = len(u.entries) # get the number of data points or child nodes
+        minfill = math.ceil(0.4 * u.max_entries) # set the minimum fill factor to 0.4 of the maximum number of entries
+        maxfill = m - minfill + 1 # set the maximum fill factor to m - minfill + 1
         # u is a leaf node
         if u.is_leaf:
-            m = u.entries.__len__() # get the number of data points
             # create two different kinds of divides
             # divide the points based on X dimension and Y dimension
             # sort the points based on X dimension and Y dimension
             divides = [sorted(u.entries, key=lambda p: p.x),
                        sorted(u.entries, key=lambda p: p.y)]#sorting the points based on X dimension and Y dimension
-            for divide in divides:
-                # check the combinations to find a near-optimal one
-                for i in range(math.ceil(0.4 * u.max_entries), m - math.ceil(0.4 * u.max_entries) + 1): #check the combinations to find a near-optimal one
-                    # add the first half of the points to s1
-                    s1 = Node(max_entries=u.max_entries)
-                    s1.entries = divide[0: i] #add the first half of the points to s1
-                    s1.update_mbr()
-                    s2 = Node(max_entries=u.max_entries)
-                    s2.entries = divide[i: divide.__len__()] #add the second half of the points to s2
-                    s2.update_mbr()
-                    if best_perimeter > s1.MBR.perimeter() + s2.MBR.perimeter(): #check the perimeter
-                        # if the perimeter of s1 and s2 is smaller than the current minimum perimeter, update the minimum perimeter
-                        best_perimeter = s1.MBR.perimeter() + s2.MBR.perimeter()
-                        # update the best s1 and s2
-                        best_s1 = s1
-                        best_s2 = s2
 
         # u is a internal node
         else:
             # create four different kinds of divides
             # divide the points based on X1, X2, Y1, Y2
             # sort the points based on X1, X2, Y1, Y2
-            m = u.entries.__len__() #get the number of child nodes
             divides = [sorted(u.entries, key=lambda child_node: child_node.MBR.x1), #sorting based on MBRs
                        sorted(u.entries, key=lambda child_node: child_node.MBR.x2),
                        sorted(u.entries, key=lambda child_node: child_node.MBR.y1),
                        sorted(u.entries, key=lambda child_node: child_node.MBR.y2)]
-            # check the combinations to find a near-optimal one
-            for divide in divides:
-                for i in range(math.ceil(0.4 * u.max_entries), m - math.ceil(0.4 * u.max_entries) + 1): #check the combinations
-                    # add the first half of the points to s1
+        # check the combinations to find a near-optimal one
+        for divide in divides:
+            for i in range(minfill, maxfill): #check the combinations
+                # add the first half of the points to s1
+                if u.is_leaf:
+                    s1 = Node(max_entries=u.max_entries, is_leaf=True)
+                    s2 = Node(max_entries=u.max_entries, is_leaf=True)
+                else:
                     s1 = Node(max_entries=u.max_entries, is_leaf=False)
-                    s1.entries = divide[0: i]
-                    s1.update_mbr()
-                    # add the second half of the points to s2
                     s2 = Node(max_entries=u.max_entries, is_leaf=False)
-                    s2.entries = divide[i: divide.__len__()]
-                    s2.update_mbr()
-                    # check the perimeter
-                    # if the perimeter of s1 and s2 is smaller than the current minimum perimeter, update the minimum perimeter
-                    if best_perimeter > s1.MBR.perimeter() + s2.MBR.perimeter():
-                        # update the best s1 and s2
-                        best_perimeter = s1.MBR.perimeter() + s2.MBR.perimeter()
-                        best_s1 = s1
-                        best_s2 = s2
+                s1.entries = divide[0: i]
+                s1.update_mbr()
+                # add the second half of the points to s2
+                s2.entries = divide[i: len(divide)]
+                s2.update_mbr()
+                # check the perimeter
+                # if the perimeter of s1 and s2 is smaller than the current minimum perimeter, update the minimum perimeter
+                if best_perimeter > s1.MBR.perimeter() + s2.MBR.perimeter():
+                    # update the best s1 and s2
+                    best_perimeter = s1.MBR.perimeter() + s2.MBR.perimeter()
+                    best_s1 = s1
+                    best_s2 = s2
         # set the parent of s1 and s2 to u
         # set the parent of s1 to u
         for child in best_s1.entries:
