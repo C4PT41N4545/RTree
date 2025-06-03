@@ -21,6 +21,7 @@ def read_point(filename: str) -> list[Point]:
 
 def write_summary(results: dict[dict], filename: Path, dataset_name: str) -> None:
     '''Write all results to a specified file.'''
+    filename = filename / f"summary_{dataset_name}.txt"
     print(f"Writing summary to {filename}")
     with open(filename, 'w') as f:
         f.write(f"Summary of Nearest Neighbor Search Results for {dataset_name}\n")
@@ -29,6 +30,7 @@ def write_summary(results: dict[dict], filename: Path, dataset_name: str) -> Non
             f.write(f"Total Running Time: {results[method]['total_time']:.4f} seconds\n")
             f.write(f"Average Time per Query: {results[method]['average_time']:.4f} seconds\n")
             for res in results[method]['results']:
+                res = f"id={res[0]}, x={res[1]}, y={res[2]} for query {res[3]}"
                 f.write(f"{res}\n")
             f.write("-" * 80 + "\n")
     print(f"All results saved to {filename}")

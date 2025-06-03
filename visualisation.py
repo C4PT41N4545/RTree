@@ -7,6 +7,39 @@ import time
 import argparse
 from pathlib import Path
 from tqdm import tqdm
+
+def plot_grouped_performance(all_results, results_dir, dataset_name="Dataset"):
+    metrics = ['Pre-processing Time', 'Average Time', 'Total Time']
+    algorithms = ['Sequential Search', 'Best First Search', 'Best First Divide Search']
+    colors = ['#8ecae6', '#219ebc', '#023047']
+
+    # Prepare data
+    data = np.array([[all_results[metric][algo] for algo in algorithms] for metric in metrics])
+
+    x = np.arange(len(algorithms))  # label locations
+    width = 0.22  # width of the bars
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for i, metric in enumerate(metrics):
+        bars = ax.bar(x + i*width - width, data[i], width, label=metric, color=colors[i], alpha=0.7)
+        # Add value labels
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height:.6f}s',
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom', fontsize=9)
+
+    ax.set_ylabel('Time (seconds)')
+    ax.set_title(f'Performance Comparison\n{dataset_name}')
+    ax.set_xticks(x)
+    ax.set_xticklabels(algorithms)
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(f"{results_dir}/{dataset_name}_performance_comparison.png")
+
 def plot_results(results, results_dir='Task1_Results'):
     # Plot the results
     max_entries = [result[0] for result in results]
