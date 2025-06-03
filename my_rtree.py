@@ -293,5 +293,13 @@ class RTree(object): #R tree class
         for p in iterable:
             self.insert(self.root, p)
         return self
-
+    
+    def search(self, query_points, show_progress=True):
+        """Search for nearest neighbors for a list of query points."""
+        results = []
+        iterable = tqdm(query_points, desc="Searching for nearest neighbors") if show_progress else query_points
+        for q in iterable:
+            best_dist, best_point = self.nearest_neighbor(q)
+            results.append((best_point.id, best_point.x, best_point.y, q.id, best_dist))
+        return results
     

@@ -1,18 +1,14 @@
-from utils import read_point, write_file, write_all_results_to_file
+from utils import read_point, write_file
 from my_rtree import RTree
-from tqdm import tqdm
 import time
 import argparse
 from pathlib import Path
 def best_first_search(rtree: RTree, query_points: list[dict[str, float]]) -> tuple[list[str], float, float]:
     """Perform a best-first search using the R-tree for nearest neighbor."""
     total_start_time = time.time()
-    results: list[str] = []
     
     # Perform nearest neighbor search for each query point
-    for query in tqdm(query_points, desc="Searching for nearest neighbors"):
-        best_dist, best_point = rtree.nearest_neighbor(query)
-        results.append(f"id={best_point.id}, x={best_point.x}, y={best_point.y} for query {query.id}")
+    results = rtree.search(query_points)
     
     total_end_time = time.time()
     total_time = total_end_time - total_start_time

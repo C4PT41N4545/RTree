@@ -38,8 +38,9 @@ def write_file(filename, results, average_time, total_time, name, dataset_name):
     with open(filename, 'w') as result_file:
         result_file.write(f"Summary of Nearest Neighbor Search Results for {dataset_name}\n")
         result_file.write(f"Time taken for nearest neighbor {name} search: {total_time:.4f} seconds\n")
-        result_file.write(f"Average time per query: {average_time / len(results):.4f} seconds\n")
+        result_file.write(f"Average time per query: {average_time / len(results):.6f} seconds\n")
         for result in results:
+            result = f"id={result[0]}, x={result[1]}, y={result[2]} for query {result[3]}"
             result_file.write(result + '\n')
 
 def write_all_results_to_file(results, filename):
@@ -49,6 +50,7 @@ def write_all_results_to_file(results, filename):
             f.write(f"Total Running Time: {results[method]['total_time']:.4f} seconds\n")
             f.write(f"Average Time per Query: {results[method]['average_time']:.4f} seconds\n")
             for res in results[method]['results']:
+                res = f"id={res[0]}, x={res[1]}, y={res[2]} for query {res[3]}"
                 f.write(f"{res}\n")
             f.write("----------------------------------------------------------------------------------------\n")
     print(f"All results saved to {filename}")

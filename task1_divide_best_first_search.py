@@ -20,7 +20,7 @@ def best_first_divide_search(rtree1, rtree2, query_points):
         else:
             best_point = best_point2
         
-        results.append(f"id={best_point.id}, x={best_point.x}, y={best_point.y} for query {query.id}")
+        results.append((best_point.id, best_point.x, best_point.y, query.id))
     
     total_end_time = time.time()
     total_time = total_end_time - total_start_time

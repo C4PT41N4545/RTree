@@ -19,7 +19,7 @@ def sequential_search(data_points: list[Point], query_points: list[Point]) -> tu
             if distance < nearest_distance:
                 nearest_distance = distance
                 nearest_data = data
-        results.append(f"id={nearest_data.id}, x={nearest_data.x}, y={nearest_data.y} for query {query.id}")
+        results.append((nearest_data.id, nearest_data.x, nearest_data.y, query.id))
         query_time.append(time.time() - query_start_time)
     total_end_time = time.time()
     total_time: float = total_end_time - total_start_time
