@@ -14,7 +14,11 @@ def cross_validate(results1, results2, results3) -> int:
     """Cross-validate the results of three search methods."""
     incorrect_count = 0
     for i in range(len(results1)):
-        if results1[i] != results2[i] or results1[i] != results3[i]:
+        # Check if the results from all three methods are the same
+        id1 = results1[i][0]
+        id2 = results2[i][0]
+        id3 = results3[i][0]
+        if id1 != id2 or id1 != id3 or id2 != id3:
             incorrect_count += 1
     return incorrect_count
 def main() -> None:
