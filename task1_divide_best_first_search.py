@@ -59,6 +59,15 @@ def main():
     rtree2.fit(data_points2)
     results, average_time, total_time = best_first_divide_search(rtree1, rtree2, query_points)
     # Write results to file
-    write_file(results_dir, results, average_time, total_time, "divide_best_first_search", results_dir.name)
+    # Use the dataset name for the summary header rather than the results file
+    # name to keep output consistent with other scripts.
+    write_file(
+        results_dir,
+        results,
+        average_time,
+        total_time,
+        "divide_best_first_search",
+        dataset_dir.name,
+    )
 if __name__ == "__main__":
     main()

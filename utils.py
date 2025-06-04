@@ -38,9 +38,17 @@ def write_summary(results: dict[dict], filename: Path, dataset_name: str) -> Non
 def write_file(filename, results, average_time, total_time, name, dataset_name):
     #save the results to a file
     with open(filename, 'w') as result_file:
-        result_file.write(f"Summary of Nearest Neighbor Search Results for {dataset_name}\n")
-        result_file.write(f"Time taken for nearest neighbor {name} search: {total_time:.4f} seconds\n")
-        result_file.write(f"Average time per query: {average_time / len(results):.6f} seconds\n")
+        result_file.write(
+            f"Summary of Nearest Neighbor Search Results for {dataset_name}\n"
+        )
+        result_file.write(
+            f"Time taken for nearest neighbor {name} search: {total_time:.4f} seconds\n"
+        )
+        # average_time already represents the per-query time, so do not divide
+        # by the number of results again.
+        result_file.write(
+            f"Average time per query: {average_time:.6f} seconds\n"
+        )
         for result in results:
             result = f"id={result[0]}, x={result[1]}, y={result[2]} for query {result[3]}"
             result_file.write(result + '\n')
