@@ -59,6 +59,8 @@ This will generate performance plots and visualize the R-Tree structure.
 
 ## Notes
 - You can change dataset and query file paths using the `--dataset-dir` and `--query-dir` arguments.
+- The `RTree` class also provides a `bulk_load` method to build the tree from a
+  list of points at once, which is faster than inserting incrementally.
 - For more details, see the code comments and function docstrings.
 
 ## Contact

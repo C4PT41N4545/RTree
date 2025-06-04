@@ -302,4 +302,37 @@ class RTree(object): #R tree class
             best_dist, best_point = self.nearest_neighbor(q)
             results.append((best_point.id, best_point.x, best_point.y, q.id, best_dist))
         return results
+
+    def bulk_load(self, data_points):
+        """Build the tree using a simple bulk loading algorithm."""
+        if not data_points:
+            return self
+
+        # Sort points for deterministic grouping
+        points = sorted(data_points, key=lambda p: (p.x, p.y))
+
+        # Create leaf level
+        nodes = []
+        for i in range(0, len(points), self.max_entries):
+            leaf = Node(max_entries=self.max_entries, is_leaf=True)
+            leaf.entries = points[i:i + self.max_entries]
+            leaf.update_mbr()
+            nodes.append(leaf)
+
+        # Build upper levels until only one node remains
+        while len(nodes) > 1:
+            new_nodes = []
+            for i in range(0, len(nodes), self.max_entries):
+                parent = Node(max_entries=self.max_entries, is_leaf=False)
+                children = nodes[i:i + self.max_entries]
+                parent.entries = children
+                for child in children:
+                    child.parent = parent
+                parent.update_mbr()
+                new_nodes.append(parent)
+            nodes = new_nodes
+
+        self.root = nodes[0]
+        self.root.parent = None
+        return self
     
