@@ -304,33 +304,39 @@ class RTree(object): #R tree class
         return results
 
     def bulk_load(self, data_points):
-        """Build the tree using a simple bulk loading algorithm."""
+        """Build the tree using the Sort-Tile-Recursive (STR) algorithm."""
         if not data_points:
             return self
 
-        # Sort points for deterministic grouping
-        points = sorted(data_points, key=lambda p: (p.x, p.y))
+        def str_partition(entries, is_leaf):
+            """Group entries into nodes using STR."""
+            capacity = self.max_entries
+            n = len(entries)
+            num_nodes = math.ceil(n / capacity)
+            slice_count = math.ceil(math.sqrt(num_nodes))
+            slice_size = math.ceil(n / slice_count)
 
-        # Create leaf level
-        nodes = []
-        for i in range(0, len(points), self.max_entries):
-            leaf = Node(max_entries=self.max_entries, is_leaf=True)
-            leaf.entries = points[i:i + self.max_entries]
-            leaf.update_mbr()
-            nodes.append(leaf)
+            key_x = (lambda e: e.x) if is_leaf else (lambda e: e.MBR.x1)
+            key_y = (lambda e: e.y) if is_leaf else (lambda e: e.MBR.y1)
 
-        # Build upper levels until only one node remains
+            entries = sorted(entries, key=key_x)
+            nodes = []
+            for i in range(0, n, slice_size):
+                tile = entries[i:i + slice_size]
+                tile = sorted(tile, key=key_y)
+                for j in range(0, len(tile), capacity):
+                    node = Node(max_entries=self.max_entries, is_leaf=is_leaf)
+                    node.entries = tile[j:j + capacity]
+                    if not is_leaf:
+                        for child in node.entries:
+                            child.parent = node
+                    node.update_mbr()
+                    nodes.append(node)
+            return nodes
+
+        nodes = str_partition(list(data_points), is_leaf=True)
         while len(nodes) > 1:
-            new_nodes = []
-            for i in range(0, len(nodes), self.max_entries):
-                parent = Node(max_entries=self.max_entries, is_leaf=False)
-                children = nodes[i:i + self.max_entries]
-                parent.entries = children
-                for child in children:
-                    child.parent = parent
-                parent.update_mbr()
-                new_nodes.append(parent)
-            nodes = new_nodes
+            nodes = str_partition(nodes, is_leaf=False)
 
         self.root = nodes[0]
         self.root.parent = None
