@@ -1,6 +1,6 @@
 Summary of Nearest Neighbor Search Results for parking_dataset
 Method: Sequential Search
-Total Running Time: 6.6216 seconds
+Total Running Time: 6.6138 seconds
 Average Time per Query: 0.0331 seconds
 id=69898, x=47.31, y=128.88 for query 1
 id=54172, x=51.8, y=125.79 for query 2
@@ -204,8 +204,8 @@ id=50824, x=16.51, y=152.72 for query 199
 id=128803, x=42.12, y=137.17 for query 200
 --------------------------------------------------------------------------------
 Method: Best First Search
-Total Running Time: 0.1645 seconds
-Average Time per Query: 0.0008 seconds
+Total Running Time: 0.0384 seconds
+Average Time per Query: 0.0002 seconds
 id=69898, x=47.31, y=128.88 for query 1
 id=54172, x=51.8, y=125.79 for query 2
 id=21954, x=21.24, y=106.03 for query 3
@@ -408,8 +408,8 @@ id=50824, x=16.51, y=152.72 for query 199
 id=128803, x=42.12, y=137.17 for query 200
 --------------------------------------------------------------------------------
 Method: Best First Divide Search
-Total Running Time: 0.2040 seconds
-Average Time per Query: 0.0010 seconds
+Total Running Time: 0.0679 seconds
+Average Time per Query: 0.0003 seconds
 id=69898, x=47.31, y=128.88 for query 1
 id=54172, x=51.8, y=125.79 for query 2
 id=21954, x=21.24, y=106.03 for query 3
