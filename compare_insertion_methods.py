@@ -35,16 +35,32 @@ def build_bulk(data_points, query_points, max_entries):
 def plot_results(build_times, query_times, results_dir):
     methods = ["Incremental", "Bulk Load"]
     x = range(len(methods))
-    width = 0.35
+    width = 0.6
 
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.bar([i - width / 2 for i in x], build_times, width, label="Build Time")
-    ax.bar([i + width / 2 for i in x], query_times, width, label="Query Time")
+    fig, (ax_build, ax_query) = plt.subplots(1, 2, figsize=(9, 4))
 
-    ax.set_ylabel("Time (seconds)")
-    ax.set_xticks(list(x))
-    ax.set_xticklabels(methods)
-    ax.legend()
+    build_bars = ax_build.bar(x, build_times, width, color="#8ecae6")
+    query_bars = ax_query.bar(x, query_times, width, color="#219ebc")
+
+    # Add value labels on top of the bars
+    for bars in [build_bars, query_bars]:
+        for bar in bars:
+            height = bar.get_height()
+            ax = bar.axes
+            ax.annotate(f"{height:.6f}s",
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),
+                        textcoords="offset points",
+                        ha='center', va='bottom', fontsize=8)
+
+    ax_build.set_ylabel("Time (seconds)")
+    ax_build.set_title("Build Time")
+    ax_query.set_title("Query Time")
+
+    for axis in (ax_build, ax_query):
+        axis.set_xticks(list(x))
+        axis.set_xticklabels(methods)
+
     plt.tight_layout()
     plt.savefig(Path(results_dir) / "insertion_comparison.png")
 
