@@ -1,6 +1,6 @@
 Summary of Nearest Neighbor Search Results for parking_dataset.txt
-Time taken for nearest neighbor divide_best_first_search search: 0.0574 seconds
-Average time per query: 0.000287 seconds
+Time taken for nearest neighbor divide_best_first_search search: 0.0975 seconds
+Average time per query: 0.000488 seconds
 id=69898, x=47.31, y=128.88 for query 1
 id=54172, x=51.8, y=125.79 for query 2
 id=21954, x=21.24, y=106.03 for query 3

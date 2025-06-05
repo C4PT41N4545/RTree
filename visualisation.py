@@ -85,25 +85,26 @@ def plot_node(node, ax, depth=0):
     #print("depth=", depth, "MBR=", node.MBR)
     if node.is_leaf:
         # plot all its points
-        xs = [p.x for p in node.data_points]
-        ys = [p.y for p in node.data_points]
-        #ax.scatter(xs, ys, c='green', zorder=5)
+        xs = [p.x for p in node.entries]
+        ys = [p.y for p in node.entries]
+        ax.scatter(xs, ys, c='green', zorder=5)
         #print("data points=", node.data_points)
 
     else:
         # recurse
-        for child in node.child_nodes:
+        for child in node.entries:
             plot_node(child, ax, depth+1)
 def find_best_max_entries(data_points, query_points):
     # Example: find the best max_entries for the R-Tree
     # This is a placeholder function. You can implement your own logic to find the best max_entries.
     # For example, you can use cross-validation or other techniques to find the best max_entries.
     results = []
-    for i in tqdm(range(4, 15+1), desc="Finding best max_entries", unit="max_entries"):
+    for i in tqdm(range(4, 30+1), desc="Finding best max_entries", unit="max_entries"):
         # Create an R-Tree with the current max_entries
         rtree = RTree(max_entries=i)
         # Insert the data points into the R-Tree
-        rtree.fit(data_points, show_progress=False)
+        #rtree.fit(data_points, show_progress=False)
+        rtree.bulk_load(data_points)
         # Measure the time taken for nearest neighbor search
         total_start_time = time.time()
         for query_point in query_points:
@@ -143,9 +144,10 @@ def main():
     best_max_entries = results[-1][0]
     #best_max_entries=10
     rtree = RTree(max_entries=best_max_entries)
-    rtree.fit(data_points)
-    
+    #rtree.fit(data_points)
+    rtree.bulk_load(data_points)
+
     # Plot the R-Tree structure
-    plot_rtree(rtree, results_dir, minmax)
+    #plot_rtree(rtree, results_dir, minmax)
 if __name__ == "__main__":
     main()

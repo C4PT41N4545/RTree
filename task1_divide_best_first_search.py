@@ -53,10 +53,12 @@ def main():
     data_points1, data_points2 = divide_data(data_points)
     #create an R-Tree for nearest neighbor search
     rtree1 = RTree(max_entries=MAX_ENTRIES)
-    rtree1.fit(data_points1)
+    #rtree1.fit(data_points1)
+    rtree1.bulk_load(data_points1)
     # create an R-Tree for nearest neighbor search
     rtree2 = RTree(max_entries=MAX_ENTRIES)
-    rtree2.fit(data_points2)
+    #rtree2.fit(data_points2)
+    rtree2.bulk_load(data_points2)
     results, average_time, total_time = best_first_divide_search(rtree1, rtree2, query_points)
     # Write results to file
     # Use the dataset name for the summary header rather than the results file

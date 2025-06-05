@@ -45,16 +45,19 @@ def main() -> None:
     #construct the RTree
     start_time = time.time()
     rtree = RTree(max_entries=MAX_ENTRIES)
-    rtree.fit(data_points)
+    #rtree.fit(data_points)
+    rtree.bulk_load(data_points)
     end_time = time.time()
     pre_processing_time = end_time - start_time
     # construct the RTree for the divided data
     start_time = time.time()
     data1, data2 = divide_data(data_points)
     rtree1 = RTree(max_entries=MAX_ENTRIES)
-    rtree1.fit(data1)
+    #rtree1.fit(data1)
+    rtree1.bulk_load(data1)
     rtree2 = RTree(max_entries=MAX_ENTRIES)
-    rtree2.fit(data2)
+    #rtree2.fit(data2)
+    rtree2.bulk_load(data2)
     end_time = time.time()
     pre_processing_time_divide = end_time - start_time
     all_results = {}

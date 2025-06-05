@@ -38,7 +38,9 @@ def main():
     
     #create an R-Tree for nearest neighbor search
     rtree = RTree(max_entries=MAX_ENTRIES)
-    rtree.fit(data_points)
+    #rtree.fit(data_points)
+    #experiment with bulk loading
+    rtree.bulk_load(data_points)
     
     # Perform best-first search
     results, average_time, total_time = best_first_search(rtree, query_points)

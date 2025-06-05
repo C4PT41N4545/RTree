@@ -302,4 +302,43 @@ class RTree(object): #R tree class
             best_dist, best_point = self.nearest_neighbor(q)
             results.append((best_point.id, best_point.x, best_point.y, q.id, best_dist))
         return results
+
+    def bulk_load(self, data_points):
+        """Build the tree using the Sort-Tile-Recursive (STR) algorithm."""
+        if not data_points:
+            return self
+
+        def str_partition(entries, is_leaf):
+            """Group entries into nodes using STR."""
+            capacity = self.max_entries
+            n = len(entries)
+            num_nodes = math.ceil(n / capacity)
+            slice_count = math.ceil(math.sqrt(num_nodes))
+            slice_size = math.ceil(n / slice_count)
+
+            key_x = (lambda e: e.x) if is_leaf else (lambda e: e.MBR.x1)
+            key_y = (lambda e: e.y) if is_leaf else (lambda e: e.MBR.y1)
+
+            entries = sorted(entries, key=key_x)
+            nodes = []
+            for i in range(0, n, slice_size):
+                tile = entries[i:i + slice_size]
+                tile = sorted(tile, key=key_y)
+                for j in range(0, len(tile), capacity):
+                    node = Node(max_entries=self.max_entries, is_leaf=is_leaf)
+                    node.entries = tile[j:j + capacity]
+                    if not is_leaf:
+                        for child in node.entries:
+                            child.parent = node
+                    node.update_mbr()
+                    nodes.append(node)
+            return nodes
+
+        nodes = str_partition(list(data_points), is_leaf=True)
+        while len(nodes) > 1:
+            nodes = str_partition(nodes, is_leaf=False)
+
+        self.root = nodes[0]
+        self.root.parent = None
+        return self
     

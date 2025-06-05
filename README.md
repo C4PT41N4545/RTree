@@ -57,8 +57,19 @@ python visualisation.py --dataset-dir Task1_Datasets/parking_dataset_sample.txt 
 ```
 This will generate performance plots and visualize the R-Tree structure.
 
+### 6. Compare Insertion Methods
+
+```
+python compare_insertion_methods.py --max-entries 10 --dataset-dir Task1_Datasets/parking_dataset_sample.txt --query-dir Task1_Datasets/query_points.txt --results-dir Task1_Results
+```
+This script builds the tree using both incremental insertion and bulk loading, then saves a figure with two bar charts (build and query times) in `Task1_Results/insertion_comparison.png`.
+
+
 ## Notes
 - You can change dataset and query file paths using the `--dataset-dir` and `--query-dir` arguments.
+- The `RTree` class also provides a `bulk_load` method that uses the
+  Sort-Tile-Recursive technique to build the tree from a list of points,
+  which is faster than inserting incrementally.
 - For more details, see the code comments and function docstrings.
 
 ## Contact
