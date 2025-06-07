@@ -85,14 +85,14 @@ def plot_node(node, ax, depth=0):
     #print("depth=", depth, "MBR=", node.MBR)
     if node.is_leaf:
         # plot all its points
-        xs = [p.x for p in node.data_points]
-        ys = [p.y for p in node.data_points]
+        xs = [p.x for p in node.entries]
+        ys = [p.y for p in node.entries]
         #ax.scatter(xs, ys, c='green', zorder=5)
         #print("data points=", node.data_points)
 
     else:
         # recurse
-        for child in node.child_nodes:
+        for child in node.entries:
             plot_node(child, ax, depth+1)
 def find_best_max_entries(data_points, query_points):
     # Example: find the best max_entries for the R-Tree
