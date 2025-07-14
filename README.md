@@ -1,5 +1,5 @@
 # Assignment 2: R-Tree Nearest Neighbor Search
-
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/C4PT41N4545/RTree)
 This project implements and compares different nearest neighbor search algorithms using R-Trees for spatial data. It includes sequential search, best-first search, and a divide-and-conquer best-first search, along with visualization tools for performance analysis and R-Tree structure.
 
 ## Project Structure
